@@ -268,6 +268,7 @@ public class BlackJack {
         embaralhar();
         entregarCartas();
 
+        somaJogador = reduzirAsesJogador(somaJogador);
         if (somaJogador == 21) {
             bater.setEnabled(false);
             jogarNovamente.setEnabled(false);
@@ -376,6 +377,7 @@ public class BlackJack {
         } else
             vencedor.setText("Empate!");
 
+        labelSaldo.setText("Saldo: " + cassino.getSaldo());
         jogarNovamente.setEnabled(true);
 
     }
@@ -388,6 +390,7 @@ public class BlackJack {
         } else if (vencedor.getText().equals("Empate!")) {
             cassino.setSaldo(cassino.getSaldo() + valorAposta);
         }
+
     }
 
     public void resetarJogo() {
@@ -422,8 +425,6 @@ public class BlackJack {
         jogarNovamente.setVisible(false);
 
         Aposta.setVisible(true);
-
-        labelSaldo.setText("Saldo: " + cassino.getSaldo());
 
         painel.repaint();
     }
