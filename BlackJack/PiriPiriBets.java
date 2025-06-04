@@ -2,7 +2,7 @@ package BlackJack;
 
 public class PiriPiriBets {
 
-    private int saldo = 1000;
+    private double saldo = 1000;
 
     private int width = 800;
     private int height = 600;
@@ -15,11 +15,11 @@ public class PiriPiriBets {
         BlackJack jogo = new BlackJack(this);
     }
 
-    public int getSaldo() {
+    public double getSaldo() {
         return saldo;
     }
 
-    public void setSaldo(int saldo) {
+    public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
 

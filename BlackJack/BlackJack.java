@@ -14,7 +14,7 @@ import javax.swing.border.Border;
  */
 
 public class BlackJack {
-    private PiriPiriBets cassino = new PiriPiriBets();
+    private PiriPiriBets cassino;
 
     private class Carta {
         String naipe;
@@ -52,6 +52,8 @@ public class BlackJack {
 
     String aposta;
 
+    boolean isBlackjack;
+
     // tela
     int cardWidth = 135, cardHeight = 190;
 
@@ -62,13 +64,13 @@ public class BlackJack {
     JLabel infoJogador = new JLabel("Soma Jogador: 0");
     JLabel infoDealer = new JLabel("Soma Dealer: 0");
     JLabel vencedor = new JLabel("");
-    JLabel labelSaldo = new JLabel("Saldo: " + cassino.getSaldo());
+    JLabel labelSaldo = new JLabel("");
     JLabel Aposta = new JLabel("Aposta: ");
 
     JButton confirmarAposta = new JButton("Confirmar Aposta");
     JButton bater = new JButton("Bater");
     JButton parar = new JButton("Parar");
-    JButton reiniciar = new JButton("Reiniciar");
+    JButton jogarNovamente = new JButton("Jogar novamente");
 
     JPanel painelBotoes = new JPanel();
     JPanel painel = new JPanel() {
@@ -105,7 +107,12 @@ public class BlackJack {
     };
 
     BlackJack(PiriPiriBets piriPiriBets) {
+        jogarNovamente.setVisible(false);
+        parar.setVisible(false);
+        bater.setVisible(false);
+
         this.cassino = piriPiriBets;
+        labelSaldo.setText("Saldo: " + cassino.getSaldo());
 
         ImageIcon icone = new ImageIcon("BlackJack\\blackjackIcon.jpg");
         Border borda = BorderFactory.createLineBorder(new Color(82, 54, 41), 10);
@@ -130,7 +137,7 @@ public class BlackJack {
 
         bater.setEnabled(false);
         parar.setEnabled(false);
-        reiniciar.setEnabled(false);
+        jogarNovamente.setEnabled(false);
         infoDealer.setText("");
         infoJogador.setText("");
 
@@ -140,8 +147,8 @@ public class BlackJack {
         parar.setFocusable(false);
         painelBotoes.add(parar);
 
-        reiniciar.setFocusable(false);
-        painelBotoes.add(reiniciar);
+        jogarNovamente.setFocusable(false);
+        painelBotoes.add(jogarNovamente);
 
         frame.add(painelBotoes, BorderLayout.SOUTH);
 
@@ -168,18 +175,27 @@ public class BlackJack {
             public void actionPerformed(ActionEvent e) {
                 aposta = campoAposta.getText();
 
-                valorAposta = Integer.parseInt(aposta);
+                try {
+                    valorAposta = Integer.parseInt(aposta);
+                    if (valorAposta <= cassino.getSaldo() && valorAposta > 0) {
+                        cassino.setSaldo(cassino.getSaldo() - valorAposta);
+                        labelSaldo.setText("Saldo: " + cassino.getSaldo());
+                        campoAposta.setEditable(false);
+                        confirmarAposta.setEnabled(false);
+                        bater.setVisible(true);
+                        parar.setVisible(true);
+                        jogarNovamente.setVisible(true);
+                        painel.repaint();
+                        confirmarAposta.setVisible(false);
+                        iniciarJogo();
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Digite um numero válido.");
+                        return;
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Por favor, digite um número válido para a aposta.");
+                }
 
-                cassino.setSaldo(cassino.getSaldo() - valorAposta);
-                labelSaldo.setText("Saldo: " + cassino.getSaldo());
-                campoAposta.setEnabled(false);
-                confirmarAposta.setEnabled(false);
-                bater.setEnabled(true);
-                parar.setEnabled(true);
-                reiniciar.setEnabled(true);
-
-                painel.repaint();
-                iniciarJogo();
             }
         });
 
@@ -193,11 +209,6 @@ public class BlackJack {
 
                 somaJogador = reduzirAsesJogador(somaJogador);
 
-                if (somaJogador >= 21) {
-                    bater.setEnabled(false);
-                    parar.doClick();
-                }
-
                 javax.swing.Timer timer = new javax.swing.Timer(80, new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         atualizarInfos();
@@ -206,6 +217,12 @@ public class BlackJack {
                 });
                 timer.setRepeats(false);
                 timer.start();
+
+                if (somaJogador >= 21) {
+                    bater.setEnabled(false);
+                    parar.doClick();
+                }
+
             }
         });
 
@@ -227,7 +244,7 @@ public class BlackJack {
                     public void actionPerformed(ActionEvent e) {
                         atualizarInfos();
                         descobrirGanhador();
-                        vencedor.setEnabled(true);
+                        atualizarSaldo();
                         painel.repaint();
                     }
                 });
@@ -236,31 +253,30 @@ public class BlackJack {
             }
         });
 
-        reiniciar.addActionListener(new ActionListener() {
+        jogarNovamente.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                baralho.clear();
-                maoJogador.clear();
-                maoDealer.clear();
-                somaJogador = 0;
-                painel.repaint();
-                iniciarJogo();
+                resetarJogo();
             }
         });
-
     }
 
     public void iniciarJogo() {
+        bater.setEnabled(true);
+        parar.setEnabled(true);
+
         fazerBaralho();
         embaralhar();
         entregarCartas();
 
         if (somaJogador == 21) {
             bater.setEnabled(false);
-            reiniciar.setEnabled(false);
+            jogarNovamente.setEnabled(false);
+            isBlackjack = true;
             javax.swing.Timer timer = new javax.swing.Timer(550, new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     parar.doClick();
-                    reiniciar.setEnabled(true);
+                    jogarNovamente.setEnabled(true);
+                    bater.setEnabled(true);
                 }
             });
             timer.setRepeats(false);
@@ -359,5 +375,57 @@ public class BlackJack {
             vencedor.setText("Jogador Venceu!");
         } else
             vencedor.setText("Empate!");
+
+        jogarNovamente.setEnabled(true);
+
     }
+
+    public void atualizarSaldo() {
+        if (vencedor.getText().equals("Jogador Venceu!") && !isBlackjack) {
+            cassino.setSaldo(cassino.getSaldo() + valorAposta * 2);
+        } else if (isBlackjack) {
+            cassino.setSaldo(cassino.getSaldo() + valorAposta * 2.5);
+        } else if (vencedor.getText().equals("Empate!")) {
+            cassino.setSaldo(cassino.getSaldo() + valorAposta);
+        }
+    }
+
+    public void resetarJogo() {
+        baralho.clear();
+        maoJogador.clear();
+        maoDealer.clear();
+
+        cartaEscondida = null;
+        valorAposta = 0;
+        somaJogador = 0;
+        somaDealer = 0;
+        qtdAsesJogador = 0;
+        qtdAsesDealer = 0;
+        isBlackjack = false;
+        aposta = "";
+
+        infoDealer.setText("");
+        infoJogador.setText("");
+        vencedor.setText("");
+
+        campoAposta.setText("");
+        campoAposta.setEnabled(true);
+        campoAposta.setEditable(true);
+        confirmarAposta.setEnabled(true);
+        confirmarAposta.setVisible(true);
+
+        bater.setEnabled(false);
+        bater.setVisible(false);
+        parar.setEnabled(false);
+        parar.setVisible(false);
+        jogarNovamente.setEnabled(false);
+        jogarNovamente.setVisible(false);
+
+        Aposta.setVisible(true);
+
+        labelSaldo.setText("Saldo: " + cassino.getSaldo());
+
+        painel.repaint();
+    }
+
 }
