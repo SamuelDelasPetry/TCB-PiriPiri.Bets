@@ -1,5 +1,7 @@
 package BlackJack;
 
+import Jackpot.Jackpot;
+
 public class PiriPiriBets {
 
     private double saldo = 1000;
@@ -9,6 +11,9 @@ public class PiriPiriBets {
 
     public PiriPiriBets() {
 
+    }
+    public void jogarJackpot(){
+        Jackpot jogo2 = new Jackpot(this);
     }
 
     public void jogarBlackJack() {
